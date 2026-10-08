@@ -322,6 +322,9 @@ pub struct DotnetConfig {
     pub exception_message_method: Option<String>,
     /// If `true`, emit a `.csproj` scaffold next to the generated sources.
     pub scaffold: Option<bool>,
+    /// If `true`, lower `&DiplomatStr` params to `string` (transcoded via
+    /// `Diplomat.Utf8.Clone`) instead of zero-copy `byte[]`.
+    pub diplomat_str_as_string: Option<bool>,
 }
 
 impl DotnetConfig {
@@ -341,6 +344,11 @@ impl DotnetConfig {
             }
             "scaffold" => {
                 self.scaffold = value
+                    .as_bool()
+                    .or_else(|| value.as_str().map(|v| v == "true"));
+            }
+            "diplomat_str_as_string" => {
+                self.diplomat_str_as_string = value
                     .as_bool()
                     .or_else(|| value.as_str().map(|v| v == "true"));
             }
@@ -411,6 +419,7 @@ pub(crate) fn run<'tcx>(
         namespace: &namespace,
         exception_trim_suffix: config.dotnet_config.exception_trim_suffix.as_deref(),
         exception_message_method: config.dotnet_config.exception_message_method.as_deref(),
+        diplomat_str_as_string: config.dotnet_config.diplomat_str_as_string.unwrap_or(false),
         result_struct_registry: std::cell::RefCell::new(std::collections::HashMap::new()),
         option_slice_registry: std::cell::RefCell::new(std::collections::HashSet::new()),
         option_struct_registry: std::cell::RefCell::new(std::collections::HashMap::new()),
