@@ -1652,10 +1652,12 @@ impl<'ccx, 'tcx: 'ccx> ItemGenContext<'ccx, 'tcx, '_> {
                 };
 
                 let conversion = match ty {
-                    SuccessType::Write(..) if is_generic_write => "".into(),
+                    // `std::optional<std::monostate>()` is an empty optional,
+                    // so a present unit value has to be spelled out.
+                    SuccessType::Write(..) if is_generic_write => "std::monostate()".into(),
                     // Note: the `output` variable is a string/vector initialized in the template
                     SuccessType::Write(..) => "std::move(output)".into(),
-                    SuccessType::Unit => "".into(),
+                    SuccessType::Unit => "std::monostate()".into(),
                     SuccessType::OutType(ref o) => {
                         self.gen_c_to_cpp_for_type(o, format!("{var_name}.ok").into())
                     }

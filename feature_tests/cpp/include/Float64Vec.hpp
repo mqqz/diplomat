@@ -196,7 +196,7 @@ inline std::optional<std::monostate> somelib::Float64Vec::maybe_write_to_write(b
     auto result = somelib::capi::Float64Vec_maybe_write_to(this->AsFFI(),
         should_succeed,
         &write);
-    return result.is_ok ? std::optional<std::monostate>() : std::nullopt;
+    return result.is_ok ? std::optional<std::monostate>(std::monostate()) : std::nullopt;
 }
 
 inline const somelib::capi::Float64Vec* somelib::Float64Vec::AsFFI() const {
