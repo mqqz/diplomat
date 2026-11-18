@@ -1,5 +1,6 @@
 {#- Shared raw [DllImport] extern declaration. Four return-type cases:
-    - Write:              void return + trailing DiplomatWrite* param
+    - Write:              void return (or the tag-only DiplomatOptionVoid
+                          for an optional string) + trailing DiplomatWrite* param
     - Fallible:           DiplomatResult struct
     - Option<value-type>: DiplomatOption struct (tagged)
     - Option<Box<T>> / plain: just method.return_type.raw() (pointer
@@ -20,7 +21,12 @@
     internal static unsafe extern {{ info.raw_return_type }} {{ method.name }}({{ method.inputs.raw_params }});
     {%- endif %}
 {%- else if method.return_type.is_write() %}
+    {%- if let Some(opt) = method.option_info %}
+    {#- `Option<()>` with a writer: the tag-only option struct on the wire. #}
+    internal static unsafe extern {{ opt.raw_option_type.as_ref().unwrap() }} {{ method.name }}({{ method.raw_params_with_writer() }});
+    {%- else %}
     internal static unsafe extern void {{ method.name }}({{ method.raw_params_with_writer() }});
+    {%- endif %}
 {%- else if let Some(opt) = method.option_info %}
     {%- if let Some(opt_struct) = opt.raw_option_type %}
     internal static unsafe extern {{ opt_struct }} {{ method.name }}({{ method.inputs.raw_params }});

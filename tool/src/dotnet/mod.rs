@@ -2865,6 +2865,75 @@ mod test {
         );
     }
 
+    // `fn(&self, &mut DiplomatWrite) -> Option<()>` is an optional string:
+    // tag-only `DiplomatOptionVoid` on the wire, `string?` in C#, and the
+    // writer is disposed on both the null and the string path.
+    #[test]
+    fn optional_write_return_lowers_to_nullable_string() {
+        let tk_stream = quote! {
+            #[diplomat::bridge]
+            mod ffi {
+                #[diplomat::opaque]
+                pub struct Name;
+
+                impl Name {
+                    pub fn nickname(&self, write: &mut DiplomatWrite) -> Option<()> {
+                        unimplemented!()
+                    }
+                    #[diplomat::attr(auto, getter)]
+                    pub fn title(&self, write: &mut DiplomatWrite) -> Option<()> {
+                        unimplemented!()
+                    }
+                }
+            }
+        };
+
+        let (files, errors) = run_dotnet(tk_stream);
+        assert!(
+            errors.is_empty(),
+            "unexpected diagnostics: {}",
+            errors.join("\n")
+        );
+
+        let name = files.get("Name.cs").expect("expected Name.cs output");
+        assert!(
+            name.contains("public string? Nickname()"),
+            "idiomatic signature should return string?:\n{name}"
+        );
+        assert!(
+            name.contains("public string? Title"),
+            "getter should become a string? property:\n{name}"
+        );
+        assert_eq!(
+            name.matches("if (!result.IsSome)").count(),
+            2,
+            "None should return null:\n{name}"
+        );
+        assert_eq!(
+            name.matches("writeable.Dispose();").count(),
+            2,
+            "the writer is freed in a finally on every path:\n{name}"
+        );
+
+        let raw = files.get("RawName.cs").expect("expected RawName.cs output");
+        assert!(
+            raw.contains(
+                "internal static unsafe extern DiplomatOptionVoid Nickname(Name* handle, DiplomatWrite* writeable);"
+            ),
+            "raw extern should return the tag-only option and take the writer:\n{raw}"
+        );
+
+        let option = files
+            .get("DiplomatOptionVoid.cs")
+            .expect("expected the tag-only DiplomatOptionVoid helper");
+        assert!(
+            option.contains("public DiplomatBool IsSome;")
+                && !option.contains("InnerUnion")
+                && !option.contains("Value =>"),
+            "the helper carries only the tag:\n{option}"
+        );
+    }
+
     // `Option<Box<[u8]>>` lowers to tagged DiplomatOption + idiomatic `RustVec?`.
     #[test]
     fn optional_owned_byte_slice_return_lowers_to_nullable_rustvec() {

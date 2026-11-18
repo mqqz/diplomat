@@ -9,6 +9,11 @@ using {{ namespace }}.Diplomat;
 [StructLayout(LayoutKind.Sequential)]
 internal partial struct {{ option_struct_name }}
 {
+{%- if inner.is_void() %}
+    {#- `Option<()>` beside a `DiplomatWrite`: the payload went to the
+        writer, so the wire struct is just the tag. #}
+    public DiplomatBool IsSome;
+{%- else %}
     [StructLayout(LayoutKind.Explicit)]
     private struct InnerUnion
     {
@@ -23,4 +28,5 @@ internal partial struct {{ option_struct_name }}
     public DiplomatBool IsSome;
 
     public {{ inner.raw() }} Value => IsSome ? {{ inner.read_union_field("_inner.value") }} : throw new InvalidOperationException("Option is None");
+{%- endif %}
 }

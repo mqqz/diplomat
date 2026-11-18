@@ -215,6 +215,10 @@ representations line up:
   `Diplomat.Utf8.Clone(...)` helper rather than inlined, so it stays visible in the
   generated source instead of hiding inside generic marshalling.
 
+A `DiplomatWrite` method returns `string`; one returning `Option<()>` (an optional string)
+returns `string?`, with `None` as `null`. Either way the writer is allocated and freed inside
+the generated method.
+
 A borrowed string or slice return (`&'a str` / `&'a DiplomatStr` / `&'a DiplomatStr16` /
 `&'a [u8]` / `&'a [u32]`) surfaces as `DiplomatBorrowedSpan<T>` — a zero-copy view over
 memory Rust still owns, rooted with managed source-handle edges. It validates those sources

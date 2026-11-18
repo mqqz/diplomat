@@ -83,6 +83,17 @@
 {{ bi }}    {
 {{ bi }}        {{ method.error_throw_statement() }}
 {{ bi }}    }
+    {%- else if method.option_info.is_some() %}
+    {#- Optional string: None returns null; the finally still frees the
+        writer, which Rust left empty. #}
+{{ bi }}    var result = Raw.{{ name }}.{{ method.name }}({{ method.raw_call_args_with_writer() }});
+    {%- for keep_alive in method.keep_alive_statements() %}
+{{ bi }}    {{ keep_alive }}
+    {%- endfor %}
+{{ bi }}    if (!result.IsSome)
+{{ bi }}    {
+{{ bi }}        return null;
+{{ bi }}    }
     {%- else %}
 {{ bi }}    Raw.{{ name }}.{{ method.name }}({{ method.raw_call_args_with_writer() }});
     {%- for keep_alive in method.keep_alive_statements() %}

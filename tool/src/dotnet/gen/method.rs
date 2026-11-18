@@ -505,7 +505,9 @@ impl DotnetReturnType {
     fn option_none_expr(&self) -> String {
         match self {
             Self::Opaque(_) => "null".to_string(),
-            Self::Unit | Self::Write => unreachable!("unit/write options are rejected earlier"),
+            // An optional `Write` never gets here: `method_body.cs.jinja` returns
+            // null straight from the writer branch.
+            Self::Unit | Self::Write => unreachable!("unit options are rejected earlier"),
             // `RustVec` is a class — None is a null reference, same as opaque Option.
             Self::OwnedByteSlice => "null".to_string(),
             Self::BorrowedSpan(_) => {
@@ -967,13 +969,18 @@ impl MethodInfo<'_> {
     }
 
     /// Idiomatic return type as it appears in the generated method
-    /// signature. `Write` methods surface as `string`: the writer is
-    /// allocated, filled, and disposed inside the generated body, so the
-    /// low-level `DiplomatWrite` is never exposed on the public API.
+    /// signature. `Write` methods surface as `string` (`string?` when they
+    /// return `Option<()>`): the writer is allocated, filled, and disposed
+    /// inside the generated body, so the low-level `DiplomatWrite` is never
+    /// exposed on the public API.
     /// Everything else defers to [`Self::idiomatic_return_type`].
     pub(super) fn idiomatic_signature_return_type(&self) -> String {
         if self.return_type.is_write() {
-            "string".to_string()
+            if self.option_info.is_some() {
+                "string?".to_string()
+            } else {
+                "string".to_string()
+            }
         } else if self.return_type.is_owned_byte_slice() {
             if self.option_info.is_some() {
                 "RustVec?".to_string()
@@ -2151,8 +2158,7 @@ impl<'ctx, 'tcx> ItemGenContext<'ctx, 'tcx> {
             // `Option<()>` would lower into a `DiplomatOptionvoid` helper
             // struct with a `void` field and an idiomatic signature of
             // `void?` — both invalid C#. Reject up-front rather than
-            // emitting broken code. Same treatment if it ever shows up as
-            // a `DiplomatWrite` nullable (`Option<&mut DiplomatWrite>`).
+            // emitting broken code.
             hir::ReturnType::Nullable(hir::SuccessType::Unit) => {
                 self.errors.push_error(
                     "[.NET backend] `Option<()>` return is not supported — \
@@ -2163,13 +2169,9 @@ impl<'ctx, 'tcx> ItemGenContext<'ctx, 'tcx> {
                 );
                 return None;
             }
-            hir::ReturnType::Nullable(hir::SuccessType::Write(..)) => {
-                self.errors.push_error(
-                    "[.NET backend] `Option<&mut DiplomatWrite>` return is not supported."
-                        .to_string(),
-                );
-                return None;
-            }
+            // A `DiplomatWrite` method returning `Option<()>` is an optional
+            // string: the tag-only `DiplomatOptionVoid` on the wire and
+            // `string?` idiomatically, with None mapped to null.
             hir::ReturnType::Nullable(s) => (s, None, true),
         };
 
