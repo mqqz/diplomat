@@ -33,6 +33,13 @@ public:
   template<typename W>
   inline somelib::diplomat::result<std::monostate, std::monostate> write_write(W& writeable_output) const;
 
+  /**
+   * An optional string: `None` for an empty value, else the value.
+   */
+  inline std::optional<std::string> non_empty() const;
+  template<typename W>
+  inline std::optional<std::monostate> non_empty_write(W& writeable_output) const;
+
   inline std::optional<std::string_view> borrow() const DIPLOMAT_LIFETIME_BOUND;
 
     inline const somelib::capi::OptionString* AsFFI() const;

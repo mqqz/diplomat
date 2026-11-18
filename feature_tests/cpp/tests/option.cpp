@@ -4,6 +4,7 @@
 #include "../include/OptionOpaqueChar.hpp"
 #include "../include/OptionOpaque.hpp"
 #include "../include/OptionStruct.hpp"
+#include "../include/OptionString.hpp"
 #include "assert.hpp"
 
 using namespace somelib;
@@ -67,4 +68,15 @@ int main(int argc, char *argv[])
     auto foo_opt = Foo::new_opt(std::make_optional("borrowed optional"sv));
     simple_assert("Foo::new_opt(Some) returns Some", static_cast<bool>(foo_opt));
     simple_assert_eq("Foo::new_opt borrows string", foo_opt->as_returning().bytes, "borrowed optional"sv);
+
+    // `fn(&self, &mut DiplomatWrite) -> Option<()>` is an optional string.
+    auto text = OptionString::new_("text"sv);
+    auto empty = OptionString::new_(""sv);
+    simple_assert_eq("non_empty() returns Some", text->non_empty().value(), "text");
+    simple_assert("non_empty() returns None", !empty->non_empty().has_value());
+    std::string written;
+    simple_assert("non_empty_write() returns Some", text->non_empty_write(written).has_value());
+    simple_assert_eq("non_empty_write() writes", written, "text");
+    std::string unwritten;
+    simple_assert("non_empty_write() returns None", !empty->non_empty_write(unwritten).has_value());
 }

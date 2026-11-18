@@ -512,6 +512,22 @@ let termini = Object.assign({
         ]
     },
 
+    "OptionString.nonEmpty": {
+        func: (selfDiplomatStr) => somelib.OptionString.new_(selfDiplomatStr).nonEmpty(),
+        // For avoiding webpacking minifying issues:
+        funcName: "OptionString.nonEmpty",
+        expr: (selfDiplomatStr) => "somelib.OptionString.new_(selfDiplomatStr).nonEmpty()".replace(/([\( ])selfDiplomatStr([,\) \n])/, '$1' + selfDiplomatStr + '$2'),
+        parameters: [
+            
+            {
+                name: "self_diplomatStr",
+                type: "string",
+                typeUse: "string"
+            }
+            
+        ]
+    },
+
     "ResultOpaque.newInt": {
         func: (i) => somelib.ResultOpaque.newInt(i),
         // For avoiding webpacking minifying issues:

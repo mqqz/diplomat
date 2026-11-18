@@ -52,6 +52,18 @@ public class OptionTests
     }
 
     [Fact]
+    public void OptionString_NonEmpty_MapsNoneToNull()
+    {
+        // `fn(&self, &mut DiplomatWrite) -> Option<()>` lowers to `string?`.
+        using OptionString value =
+            Assert.IsType<OptionString>(OptionString.New(Encoding.UTF8.GetBytes("hello 餐")));
+        using OptionString empty = Assert.IsType<OptionString>(OptionString.New([]));
+
+        Assert.Equal("hello 餐", value.NonEmpty());
+        Assert.Null(empty.NonEmpty());
+    }
+
+    [Fact]
     public void OptionStrArgument_MapsNullEmptyAndUtf8()
     {
         // `Option<&str>` lowers to `string?`; Rust returns the UTF-8 byte length.

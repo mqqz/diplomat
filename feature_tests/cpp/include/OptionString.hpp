@@ -23,6 +23,9 @@ namespace capi {
     typedef struct OptionString_write_result { bool is_ok;} OptionString_write_result;
     OptionString_write_result OptionString_write(const somelib::capi::OptionString* self, somelib::diplomat::capi::DiplomatWrite* write);
 
+    typedef struct OptionString_non_empty_result { bool is_ok;} OptionString_non_empty_result;
+    OptionString_non_empty_result OptionString_non_empty(const somelib::capi::OptionString* self, somelib::diplomat::capi::DiplomatWrite* write);
+
     typedef struct OptionString_borrow_result {union {somelib::diplomat::capi::DiplomatStringView ok; }; bool is_ok;} OptionString_borrow_result;
     OptionString_borrow_result OptionString_borrow(const somelib::capi::OptionString* self);
 
@@ -50,6 +53,21 @@ inline somelib::diplomat::result<std::monostate, std::monostate> somelib::Option
     auto result = somelib::capi::OptionString_write(this->AsFFI(),
         &write);
     return result.is_ok ? somelib::diplomat::result<std::monostate, std::monostate>(somelib::diplomat::Ok<std::monostate>()) : somelib::diplomat::result<std::monostate, std::monostate>(somelib::diplomat::Err<std::monostate>());
+}
+
+inline std::optional<std::string> somelib::OptionString::non_empty() const {
+    std::string output;
+    somelib::diplomat::capi::DiplomatWrite write = somelib::diplomat::WriteFromString(output);
+    auto result = somelib::capi::OptionString_non_empty(this->AsFFI(),
+        &write);
+    return result.is_ok ? std::optional<std::string>(std::move(output)) : std::nullopt;
+}
+template<typename W>
+inline std::optional<std::monostate> somelib::OptionString::non_empty_write(W& writeable) const {
+    somelib::diplomat::capi::DiplomatWrite write = somelib::diplomat::WriteTrait<W>::Construct(writeable);
+    auto result = somelib::capi::OptionString_non_empty(this->AsFFI(),
+        &write);
+    return result.is_ok ? std::optional<std::monostate>(std::monostate()) : std::nullopt;
 }
 
 inline std::optional<std::string_view> somelib::OptionString::borrow() const DIPLOMAT_LIFETIME_BOUND {

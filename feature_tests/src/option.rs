@@ -27,6 +27,16 @@ pub mod ffi {
             Ok(())
         }
 
+        /// An optional string: `None` for an empty value, else the value.
+        pub fn non_empty(&self, write: &mut DiplomatWrite) -> Option<()> {
+            use std::fmt::Write;
+            if self.0.is_empty() {
+                return None;
+            }
+            let _ = write.write_str(&self.0);
+            Some(())
+        }
+
         #[diplomat::attr(dotnet, disable)]
         pub fn borrow<'a>(&'a self) -> Option<&'a DiplomatStr> {
             Some(self.0.as_bytes())

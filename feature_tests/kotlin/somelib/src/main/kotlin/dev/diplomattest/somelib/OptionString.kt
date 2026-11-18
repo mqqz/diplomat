@@ -9,6 +9,7 @@ internal interface OptionStringLib: Library {
     fun OptionString_destroy(handle: Pointer)
     fun OptionString_new(diplomatStr: Slice): Pointer?
     fun OptionString_write(handle: Pointer, write: Pointer): ResultUnitUnit
+    fun OptionString_non_empty(handle: Pointer, write: Pointer): OptionUnit
     fun OptionString_borrow(handle: Pointer): OptionSlice
 }
 
@@ -66,6 +67,20 @@ class OptionString internal constructor (
         } else {
             return UnitError().err()
         }
+    }
+    
+    /**
+     * An optional string: `None` for an empty value, else the value.
+     */
+    fun nonEmpty(): String? {
+        val write = DW.lib.diplomat_buffer_write_create(0)
+        val returnVal = lib.OptionString_non_empty(handle, write);
+        
+        returnVal.option() ?: return null
+
+        val returnString = DW.writeToString(write)
+        return returnString
+                                
     }
     
     fun borrow(): String? {

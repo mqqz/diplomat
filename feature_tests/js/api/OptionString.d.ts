@@ -14,5 +14,10 @@ export class OptionString {
 
     write(): string | null;
 
+    /**
+     * An optional string: `None` for an empty value, else the value.
+     */
+    nonEmpty(): string | null;
+
     borrow(): string | null;
 }

@@ -14,6 +14,7 @@ void add_OptionString_binding(nb::module_ mod) {
     opaque
         .def("borrow", &somelib::OptionString::borrow)
         .def_static("new", std::move(maybe_op_unwrap(&somelib::OptionString::new_)), "diplomat_str"_a)
+        .def("non_empty", &somelib::OptionString::non_empty, "An optional string: `None` for an empty value, else the value.")
         .def("write", &somelib::OptionString::write);
 }
 

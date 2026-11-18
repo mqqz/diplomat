@@ -15,6 +15,9 @@ internal partial struct OptionString
     [DllImport(DiplomatNativeLib.Name, EntryPoint = "OptionString_write", CallingConvention = CallingConvention.Cdecl)]
     internal static unsafe extern DiplomatResultVoidUnit Write(OptionString* handle, DiplomatWrite* writeable);
 
+    [DllImport(DiplomatNativeLib.Name, EntryPoint = "OptionString_non_empty", CallingConvention = CallingConvention.Cdecl)]
+    internal static unsafe extern DiplomatOptionVoid NonEmpty(OptionString* handle, DiplomatWrite* writeable);
+
     [DllImport(DiplomatNativeLib.Name, EntryPoint = "OptionString_destroy", CallingConvention = CallingConvention.Cdecl)]
     internal static unsafe extern void Destroy(OptionString* handle);
 }

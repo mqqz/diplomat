@@ -104,6 +104,36 @@ public partial class OptionString: IDisposable
         }
     }
 
+    public string? NonEmpty()
+    {
+        unsafe
+        {
+            BorrowLease<Raw.OptionString>? selfLease = null;
+            try
+            {
+                selfLease = _diplomatHandle.Lease(BorrowKind.Shared);
+                DiplomatWrite writeable = new DiplomatWrite();
+                try
+                {
+                    var result = Raw.OptionString.NonEmpty(selfLease!.Ptr, &writeable);
+                    if (!result.IsSome)
+                    {
+                        return null;
+                    }
+                    return writeable.ToUnicode();
+                }
+                finally
+                {
+                    writeable.Dispose();
+                }
+            }
+            finally
+            {
+                selfLease?.Release();
+            }
+        }
+    }
+
     private void Cleanup()
     {
         unsafe

@@ -30,6 +30,8 @@ On the JS side these will get converted to APIs that return strings (`maybe_get_
 
 In C++ these become APIs that return `std::string` and `diplomat::result<std::string, std::monostate>` respectively.
 
+A method that may have no string to return can return `Option<()>` instead: `None` leaves the writer untouched and becomes the target language's null (`std::optional<std::string>` in C++, `string | null` in JS, `str | None` in Python, `String?` in Kotlin, `string?` in .NET).
+
 
 Essentially, versions of the API returning `std::string` are generated, where the `write!()` operation will end up writing _directly to the `std::string`_ with no additional intermediate Rust `String` allocations.
 

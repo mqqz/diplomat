@@ -71,6 +71,25 @@ export class OptionString {
         }
     }
 
+    /**
+     * An optional string: `None` for an empty value, else the value.
+     */
+    nonEmpty() {
+        const write = new diplomatRuntime.DiplomatWriteBuf(wasm);
+
+
+        const result = wasm.OptionString_non_empty(this.ffiValue, write.buffer);
+
+        try {
+            return result === 0 ? null : write.readString8();
+        }
+
+        finally {
+            diplomatRuntime.FUNCTION_PARAM_ALLOC.clean();
+            write.free();
+        }
+    }
+
     borrow() {
         const diplomatReceive = new diplomatRuntime.DiplomatReceiveBuf(wasm, 9, 4, true);
 
